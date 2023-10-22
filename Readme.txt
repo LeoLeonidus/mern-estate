@@ -59,6 +59,25 @@ nella cartella creo index.js
 
 - npm i nodemon : installo nodemon poi modifico package.json creando gli script "dev" (usa nodemon) e "start" (usa node)
 
+COLLEGAMENTO AL DB MONGODB
+==========================
+
+dalla dir del progetto (MernEstate) installo mongoose
+
+-npm install mongoose
+
+vado sul sito di mongodb e creo un nuovo db
+
+DB name : mern-estate
+User: verzonimassimo
+Password: 2kalC6i6jPmbQ3Il
+
+una volta creato scelgo Cloud Environment
+
+nell' IP Address aggiungere 0.0.0.0 per avere un accesso indipendentemente dall'IP
+
+Successivo : vedere Connect your application - Drivers
+
 
 
 
