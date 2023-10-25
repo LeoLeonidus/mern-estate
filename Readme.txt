@@ -78,6 +78,30 @@ nell' IP Address aggiungere 0.0.0.0 per avere un accesso indipendentemente dall'
 
 Successivo : vedere Connect your application - Drivers
 
+Creo il file .env per la stringa di connessione al DB , per poterla leggere con process.env.MONGO devo installare :
 
+- npm install dotenv
+
+poi aggiungere .env alla file del .gitignore
+
+PER CRIPTARE LA PASSWORD
+
+- npm install bcryptjs
+
+PER INDIRIZZARE LE RICHIESTE DEL CLIENT SULLA PORTA 3000 MODIFICARE VITE.CONFIG.GS :
+
+export default defineConfig({
+  
+  server:{
+    proxy:{
+      '/api': {
+        target: 'http://localhost:3000',
+        secure: false
+      }
+    }
+  },
+
+  plugins: [react()],
+})
 
 
