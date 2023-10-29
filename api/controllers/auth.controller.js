@@ -56,3 +56,41 @@ export const signin = async (req,res,next) => {
     }
     
 };
+
+export const google = async (req,res,next) => {
+    console.log("-----GOOGLE------");
+    try {
+        const user = await User.findOne({email:req.body.email});
+        if (user){
+            console.log("user in db");
+            const token = jwt.sign({ id: user._id} , process.env.JWT_SECRET);
+            const { password: pass , ...rest } = user._doc;
+            res.cookie('access_token', token , {httpOnly: true}).status(200).json(rest);
+        } else {
+            console.log("user NOT in db");
+            //because we have not a pw we generete a random one (16 digits):
+            const generatedPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
+            console.log("generatedPw=",generatedPassword);
+            const hashedPassword = bcryptjs.hashSync(generatedPassword,10);
+            console.log("hashedPw=",hashedPassword);
+            const newUser = new User( {
+                username: req.body.name.split(" ").join("").toLowerCase() + Math.random().toString(36).slice(-4),
+                email: req.body.email,
+                password: hashedPassword,
+                avatar: req.body.photo,
+            });
+            console.log("newUser=",newUser);
+            console.log("NEWUSER GENERATED");
+            try {
+                await newUser.save();
+                const token = jwt.sign({ id: newUser._id} , process.env.JWT_SECRET);
+                const { password: pass , ...rest } = newUser._doc;
+                res.cookie('access_token', token , {httpOnly: true}).status(200).json(rest);
+            } catch (error) {
+                next(error);
+            };
+        }
+    } catch (error) {
+        next (error);
+    };
+}

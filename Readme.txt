@@ -52,12 +52,16 @@ MI PORTO nella dir principale del progetto (MernEstate) e inizializzo
 - npm i express : installo express
 
 CREAZIONE DEL SERVER :
+======================
 
 creo la cartella api
 
 nella cartella creo index.js
 
 - npm i nodemon : installo nodemon poi modifico package.json creando gli script "dev" (usa nodemon) e "start" (usa node)
+
+- npm run dev : per lanciare 
+
 
 COLLEGAMENTO AL DB MONGODB
 ==========================
@@ -104,4 +108,32 @@ export default defineConfig({
   plugins: [react()],
 })
 
+INSTALLARE JSONWEBTOKEN PER L'AUTENTICAZIONE : dalla root MernEstate
 
+-npm install jsonwebtoken
+
+
+INSTALLARE REDUX TOOLKIT (https://redux-toolkit.js.org/)
+
+- cd client
+- npm install @reduxjs/toolkit react-redux
+
+USARE REDUX PERSIST per evitare che i dati inseriti vengano persi se reload della pagina nel browser
+
+- npm install redux-persist ( sempre nel client )
+
+modificare store.js per usarlo , poi nel main.js avvolgere la App nel PersistGate
+
+OAUTH GOOGLE : UTILIZZO DI FIREBASE PER AUTENTICARSI CON LE CREDENZIALI GOOGLE
+
+https://firebase.google.com/
+
+- npm install firebase ( nel client )
+
+
+
+
+
+
+
+-
