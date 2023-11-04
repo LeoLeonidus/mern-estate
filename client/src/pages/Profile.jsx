@@ -1,25 +1,31 @@
-import { useSelector } from "react-redux";
 import { useRef , useState , useEffect } from "react";
 import {getDownloadURL, getStorage, ref, uploadBytesResumable} from 'firebase/storage';
 import {app} from '../firebase.jsx';
-
+import { useDispatch , useSelector } from 'react-redux';
+import { updateUserStart , updateUserSuccess , updateUserFailure, signoutUser } from '../redux/user/userSlice';
+import { useNavigate } from "react-router-dom";
 export default function Profile() {
 
-  const {currentUser} = useSelector( (state) => state.user);
+  const {currentUser,loading,error} = useSelector( (state) => state.user);
   const fileRef = useRef(null);
   const [file,setFile] = useState(undefined);
   const [filePerc,setFilePerc] = useState(0);
   const [uploadFileError,setUploadFileError] = useState(false);
   const [formData,setFormData] = useState({});
+  const [updateSuccess,setUpdateSuccess] = useState(false);
+
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   //console.log("FILE=",file);
   //console.log("Perc=",filePerc);
+  console.log("formData=",formData);
 
   /* firebase Storage rules:
   allow read; 
   allow write: if 
       request.resource.size < 2 * 1024 * 1024 &&
-      request.resource.contentType.matches('images/.*');
+      request.resource.contentType.matches('image/.*');
   */
 
   useEffect( () => {
@@ -48,20 +54,52 @@ export default function Profile() {
       () => {
         getDownloadURL(uploadTask.snapshot.ref).then(
           (downloadURL) => {
-            console.log("downloadURL=",downloadURL);
+            //console.log("downloadURL=",downloadURL);
             
             setFormData({ ...formData , avatar: downloadURL});
-            console.log("formData=",formData);
+            //console.log("formData=",formData);
           });
       });
   };
+
+  const handleChange = (e) => {
+      setFormData({ ...formData , [e.target.id]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    dispatch(updateUserStart());
+    setUpdateSuccess(false);
+    const res = await fetch(`/api/user/update/${currentUser._id}`  , {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    });
+    const data = await res.json();
+    if(data.success === false) {
+      dispatch(updateUserFailure(data.message));
+      return;
+    }
+    dispatch(updateUserSuccess(data));
+    setUpdateSuccess(true);
+    //console.log(data);
+    //navigate('/');
+  };
+
+  const handleSignout = (e) => {
+    e.preventDefault();
+    dispatch(signoutUser());
+    navigate('/sign-in');
+  }
 
   return (
     <div className='p-3 max-w-lg mx-auto'>
       <h1 className='text-3xl font-semibold text-center my-7'>
         Profile
       </h1>
-      <form className='flex flex-col gap-4'>
+      <form className='flex flex-col gap-4' onSubmit={handleSubmit}>
         <input 
           onChange={(e) => setFile(e.target.files[0])}
           type="file" 
@@ -88,27 +126,45 @@ export default function Profile() {
             className="border p-3 rounded-lg" 
             placeholder="username" 
             type="text" 
-            /* value={currentUser.username} *//>
+            defaultValue={currentUser.username} 
+            onChange={handleChange}
+            required
+        />
         <input id="email" 
             className="border p-3 rounded-lg" 
             placeholder="email" 
             type="email" 
-           /*  value={currentUser.email} *//>
-        <input id="password" className="border p-3 rounded-lg" placeholder="password" type="password" />
+            defaultValue={currentUser.email} 
+            onChange={handleChange}
+            required
+        />
+        <input id="password" 
+                className="border p-3 rounded-lg" 
+                placeholder="password" 
+                type="password" 
+                onChange={handleChange}
+        />
         <button 
-          type="button"
-          className="bg-slate-700 text-white rounded-lg p-3 uppercase hover:opacity-95 disabled:opacity-80 ">
-          update
+          type="submit"
+          className="bg-slate-700 text-white rounded-lg p-3 uppercase hover:opacity-95 disabled:opacity-80 "
+          disabled={loading}
+          >
+          {loading ? "loading...." : "update"}
         </button>
       </form>
       <div className="flex justify-between mt-5">
-        <span className="text-red-700 cursor-pointer">
+        <span  className="text-red-700 cursor-pointer">
           Delete account
         </span>
-        <span className="text-red-700 cursor-pointer">
+        <span onClick={handleSignout} className="text-red-700 cursor-pointer">
           Sign out
         </span>
       </div>
+      {error && <p className='text-red-500 mt-5'>{error}</p>}
+      {updateSuccess ? (<p className='text-green-700 mt-5'>{'User updated'}</p>
+      ):(
+        <p></p>
+      )}
     </div>
   )
 }

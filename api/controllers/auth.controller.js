@@ -49,6 +49,7 @@ export const signin = async (req,res,next) => {
         const token = jwt.sign({ id: validUser._id} , process.env.JWT_SECRET);
         // eliminiamo la password dalla risposta:
         const { password: pass , ...rest } = validUser._doc;
+        console.log("signin response=",rest,"<--------------------");
         res.cookie('access_token', token , {httpOnly: true}).status(200).json(rest);
         //res.status(200).json("User ok");
     } catch (error) {
