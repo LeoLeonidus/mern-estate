@@ -58,6 +58,16 @@ export const signin = async (req,res,next) => {
     
 };
 
+export const signout = (req,res,next) => {
+
+    try {
+        res.clearCookie('access_token');
+        res.status(200).json('user is logged out');
+    } catch (error) {
+        next(error);
+    }
+};
+
 export const google = async (req,res,next) => {
     console.log("-----GOOGLE------");
     try {

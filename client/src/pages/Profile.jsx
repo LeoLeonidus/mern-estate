@@ -3,7 +3,7 @@ import {getDownloadURL, getStorage, ref, uploadBytesResumable} from 'firebase/st
 import {app} from '../firebase.jsx';
 import { useDispatch , useSelector } from 'react-redux';
 import { updateUserStart , updateUserSuccess , updateUserFailure, 
-          signoutUser ,
+          signoutUserStart , signoutUserSuccess , signoutUserFailure,
           deleteUserStart, deleteUserSuccess , deleteUserFailure
         } from '../redux/user/userSlice';
 import { useNavigate } from "react-router-dom";
@@ -92,11 +92,23 @@ export default function Profile() {
     //navigate('/');
   };
 
-  const handleSignout = (e) => {
+  const handleSignout = async (e) => {
+    //console.log("sono in handleSignout");
     e.preventDefault();
-    dispatch(signoutUser());
-    navigate('/sign-in');
-  }
+    //console.log("faccio dispatch");
+    dispatch(signoutUserStart());
+    //console.log("faccio fetch");
+    const res = await fetch('/api/auth/signout');
+    //console.log("fatta fetch");
+    const data = await res.json();
+    if(data.success === false) {
+      dispatch(signoutUserFailure(data.message));
+      return;
+    }
+    
+    dispatch(signoutUserSuccess(null));
+
+  };
 
   const handleDelete = async (e) => {
     e.preventDefault();
@@ -121,8 +133,6 @@ export default function Profile() {
     }
     alert("user successfully deletede");
     dispatch(deleteUserSuccess(null));
-    
-    dispatch(signoutUser());
     
   };
 
