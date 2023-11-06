@@ -2,7 +2,10 @@ import { useRef , useState , useEffect } from "react";
 import {getDownloadURL, getStorage, ref, uploadBytesResumable} from 'firebase/storage';
 import {app} from '../firebase.jsx';
 import { useDispatch , useSelector } from 'react-redux';
-import { updateUserStart , updateUserSuccess , updateUserFailure, signoutUser } from '../redux/user/userSlice';
+import { updateUserStart , updateUserSuccess , updateUserFailure, 
+          signoutUser ,
+          deleteUserStart, deleteUserSuccess , deleteUserFailure
+        } from '../redux/user/userSlice';
 import { useNavigate } from "react-router-dom";
 export default function Profile() {
 
@@ -13,6 +16,7 @@ export default function Profile() {
   const [uploadFileError,setUploadFileError] = useState(false);
   const [formData,setFormData] = useState({});
   const [updateSuccess,setUpdateSuccess] = useState(false);
+ 
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -94,6 +98,34 @@ export default function Profile() {
     navigate('/sign-in');
   }
 
+  const handleDelete = async (e) => {
+    e.preventDefault();
+
+    const response = confirm(`Are you shure to delete ${currentUser.username} user ?`);
+    if (!response)
+      return;
+
+    dispatch(deleteUserStart());
+    
+    const res = await fetch(`/api/user/delete/${currentUser._id}`  , {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      
+    });
+    const data = await res.json();
+    if(data.success === false) {
+      dispatch(deleteUserFailure(data.message));
+      return;
+    }
+    alert("user successfully deletede");
+    dispatch(deleteUserSuccess(null));
+    
+    dispatch(signoutUser());
+    
+  };
+
   return (
     <div className='p-3 max-w-lg mx-auto'>
       <h1 className='text-3xl font-semibold text-center my-7'>
@@ -153,7 +185,7 @@ export default function Profile() {
         </button>
       </form>
       <div className="flex justify-between mt-5">
-        <span  className="text-red-700 cursor-pointer">
+        <span  onClick={handleDelete} className="text-red-700 cursor-pointer">
           Delete account
         </span>
         <span onClick={handleSignout} className="text-red-700 cursor-pointer">
@@ -165,6 +197,7 @@ export default function Profile() {
       ):(
         <p></p>
       )}
+      
     </div>
   )
 }
