@@ -67,3 +67,7 @@ export const getUserListing = async (req,res,next) => {
         next(error);
     }
 }
+
+export const invalidUserRoute = async (req,res,next) => {
+    return next(errorHandler(404,"Invalid USER route"));
+}
