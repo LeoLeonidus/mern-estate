@@ -53,7 +53,7 @@ export default function Listing() {
                 setUploading(false);
             }).catch( (err) => {
                 setImageUploadError('Image Upload failed (2 mb max per image)');
-                
+                setUploading(false);
             }); 
         } else {
             setImageUploadError('Only 6 images per listing');

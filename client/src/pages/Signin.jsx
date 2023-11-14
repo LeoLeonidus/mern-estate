@@ -19,7 +19,7 @@ export default function SignIn() {
         [e.target.id]: e.target.value
       });
   };
-  console.log(formData);
+  //console.log(formData);
   
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,7 +37,7 @@ export default function SignIn() {
       return;
     }
     dispatch(signInSuccess(data));
-    console.log(data);
+    //console.log(data);
     navigate('/');
   }
   

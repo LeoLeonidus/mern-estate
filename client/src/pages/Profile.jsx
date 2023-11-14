@@ -1,5 +1,5 @@
 import { useRef , useState , useEffect } from "react";
-import {getDownloadURL, getStorage, ref, uploadBytesResumable} from 'firebase/storage';
+import {deleteObject, getDownloadURL, getStorage, ref, uploadBytesResumable} from 'firebase/storage';
 import {app} from '../firebase.jsx';
 import { useDispatch , useSelector } from 'react-redux';
 import { updateUserStart , updateUserSuccess , updateUserFailure, 
@@ -19,6 +19,7 @@ export default function Profile() {
   const [updateSuccess,setUpdateSuccess] = useState(false);
   const [showListingsMessage,setShowListingsMessage] = useState();
   const [userListings,setUserListings] = useState([]);
+  const [listingDelete,setListingDelete] = useState(null);
  
 
   const dispatch = useDispatch();
@@ -26,7 +27,7 @@ export default function Profile() {
 
   //console.log("FILE=",file);
   //console.log("Perc=",filePerc);
-  console.log("formData=",formData);
+  //console.log("formData=",formData);
 
   /* firebase Storage rules:
   allow read; 
@@ -113,8 +114,23 @@ export default function Profile() {
 
   };
 
+  // DELETE the current user
   const handleDelete = async (e) => {
     e.preventDefault();
+
+    // IF the user has LISTINGS , delete is FORBIDDEN
+    try {
+      const dataListings = await fetch(`/api/user/listings/${currentUser._id}`,{
+        method: 'GET',
+      });
+      const listings = await dataListings.json();
+      if (listings.length > 0) {
+        alert(`You have ${listings.length} listings present !\nDelete account is forbidden !`);
+        return;
+      }
+    } catch (error) {
+      console.log(error.message);
+    }
 
     const response = confirm(`Are you shure to delete ${currentUser.username} user ?`);
     if (!response)
@@ -166,6 +182,40 @@ export default function Profile() {
     } catch (error) {
       //console.log(error);
       setShowListingsMessage(error);
+    }
+  }
+
+  const handleListingDelete = async (listingId) => {
+    //e.preventDefault();
+    setListingDelete(null);
+    //console.log("listingId=",listingId);
+    try {
+      const res = await fetch(`/api/listing/delete/${listingId}` , {
+        method: 'delete',
+      });
+      const data = await res.json();
+      //console.log("data=.imageUrls",data.imageUrls);
+      if(data.success === false) {
+        setListingDelete(data.message);
+        return;
+         }
+      // Now delete images of the listing from Firebase
+      const storage = getStorage(app);
+      for (let i = 0 ; i < data.imageUrls.length ; i++) {
+        //console.log("index=",i," imageUrl=",data.imageUrls[i],"-------");
+        const imageRef = ref( storage , data.imageUrls[i]);
+        deleteObject(imageRef).catch( (err) => {
+          console.log("Error deleting image : ",err);
+        });
+      }
+      setUserListings( (oldList) => 
+          oldList.filter( (listing) => listing._id !== listingId)
+          );
+      
+    
+    } catch (error) {
+      console.log(error.message);
+      setListingDelete(error.message);
     }
   }
 
@@ -258,6 +308,7 @@ export default function Profile() {
           <h1 className="text-center mt-7 text-2xl font-semibold">
             Your Listings
           </h1>
+          {listingDelete && <p className="text-red-700">{listingDelete}</p>}
           {userListings.map( (listing) => (
             
             <div key={listing._id} 
@@ -273,12 +324,16 @@ export default function Profile() {
                 <p >{listing.name}</p>
               </Link>
               <div className="flex flex-col">
-                <button className="text-red-700 uppercase">
+                <button className="text-red-700 uppercase"
+                        onClick={() => handleListingDelete(listing._id)}
+                >
                   Delete
                 </button>
+                
                 <button className="text-green-700 uppercase">
                   Edit
                 </button>
+                
               </div>
             </div>
             

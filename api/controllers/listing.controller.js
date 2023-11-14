@@ -31,8 +31,10 @@ export const deleteListing = async (req,res,next) => {
     
         try {
             
-            await Listing.findByIdAndDelete(req.params.id);
-            return res.status(200).json("deleted");
+            const listing = await Listing.findByIdAndDelete(req.params.id);
+            console.log("deleteListing=",listing);
+
+            return res.status(200).json(listing);
         } catch (error) {
             next (error);
         }  
