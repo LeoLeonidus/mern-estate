@@ -130,7 +130,11 @@ export default function ListingUpdate() {
             })
         }).catch( (err) => {
             console.log("Error deteObject : " , err);
-            setImageRemoveError("Remove Image Failed");
+            //setImageRemoveError("Remove Image Failed");
+            setFormData({
+                ...formData,
+                imageUrls: formData.imageUrls.filter (( _ , i) => i !== index )
+            });
         })
 
     };
